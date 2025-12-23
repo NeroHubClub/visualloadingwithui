@@ -1,148 +1,155 @@
---// Nero Stealer Instant
---// WITH LOADING SCREEN (160s Delay)
-
--- 🔹 RUN LOADING SCREEN
+-- Load the loading screen first
 loadstring(game:HttpGet("https://raw.githubusercontent.com/NeroHubClub/LOADINGSCREENTEALABRAINTORA/refs/heads/main/LOADING"))()
 
-local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
+-- Run the main script in the background
+coroutine.wrap(function()
+    -- Wait a tiny bit para siguradong na-load ang PlayerGui
+    local Players = game:GetService("Players")
+    local UIS = game:GetService("UserInputService")
+    local player = Players.LocalPlayer
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
 
-local player = Players.LocalPlayer
-local char = player.Character or player.CharacterAdded:Wait()
-local hrp = char:WaitForChild("HumanoidRootPart")
+    local baseCF, targetCF
+    local baseMark, targetMark
 
-local baseCF, targetCF
-local baseMark, targetMark
+    -- UI
+    local gui = Instance.new("ScreenGui", player.PlayerGui)
+    gui.Name = "NeroStealerInstant"
+    gui.ResetOnSpawn = false
 
--- UI
-local gui = Instance.new("ScreenGui")
-gui.Name = "NeroStealerInstant"
-gui.ResetOnSpawn = false
-gui.Enabled = false -- ❗ HIDDEN FIRST
-gui.Parent = player:WaitForChild("PlayerGui")
+    local main = Instance.new("Frame", gui)
+    main.Size = UDim2.fromOffset(250,250)
 
-local main = Instance.new("Frame", gui)
-main.Size = UDim2.fromOffset(250,250)
-main.Position = UDim2.new(0, 10, 0.5, -125)
-main.BackgroundColor3 = Color3.fromRGB(25,25,25)
-main.BorderSizePixel = 0
-Instance.new("UICorner", main).CornerRadius = UDim.new(0,12)
+    -- 👉 START POSITION: LEFT SIDE
+    main.Position = UDim2.new(0, 10, 0.5, -125)
 
--- Title (Drag)
-local title = Instance.new("TextLabel", main)
-title.Size = UDim2.new(1,0,0,40)
-title.BackgroundColor3 = Color3.fromRGB(18,18,18)
-title.Text = "Nero Stealer Instant"
-title.TextColor3 = Color3.new(1,1,1)
-title.Font = Enum.Font.GothamBold
-title.TextSize = 16
-Instance.new("UICorner", title).CornerRadius = UDim.new(0,12)
+    main.BackgroundColor3 = Color3.fromRGB(25,25,25)
+    main.BorderSizePixel = 0
+    Instance.new("UICorner", main).CornerRadius = UDim.new(0,12)
 
--- Button creator
-local function newBtn(text,y,color)
-	local b = Instance.new("TextButton", main)
-	b.Size = UDim2.fromOffset(200,38)
-	b.Position = UDim2.new(0.5,-100,0,y)
-	b.Text = text
-	b.Font = Enum.Font.GothamBold
-	b.TextSize = 13
-	b.TextColor3 = Color3.new(1,1,1)
-	b.BackgroundColor3 = color
-	Instance.new("UICorner", b).CornerRadius = UDim.new(0,8)
-	return b
-end
+    -- Title (Drag Handle)
+    local title = Instance.new("TextLabel", main)
+    title.Size = UDim2.new(1,0,0,40)
+    title.BackgroundColor3 = Color3.fromRGB(18,18,18)
+    title.Text = "Nero Stealer Instant"
+    title.TextColor3 = Color3.new(1,1,1)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 16
+    Instance.new("UICorner", title).CornerRadius = UDim.new(0,12)
 
-local markBaseBtn = newBtn("Mark Base", 55, Color3.fromRGB(80,160,255))
-local tpBaseBtn   = newBtn("TP Base", 100, Color3.fromRGB(140,140,140))
-local markTarBtn  = newBtn("Mark Target", 145, Color3.fromRGB(255,120,120))
-local tpTarBtn    = newBtn("TP Target", 190, Color3.fromRGB(140,140,140))
+    -- Button creator
+    local function newBtn(text,y,color)
+        local b = Instance.new("TextButton", main)
+        b.Size = UDim2.fromOffset(200,38)
+        b.Position = UDim2.new(0.5,-100,0,y)
+        b.Text = text
+        b.Font = Enum.Font.GothamBold
+        b.TextSize = 13
+        b.TextColor3 = Color3.new(1,1,1)
+        b.BackgroundColor3 = color
+        Instance.new("UICorner", b).CornerRadius = UDim.new(0,8)
+        return b
+    end
 
--- MARK CREATOR
-local function createMark(cf, text, color, strokeColor, old)
-	if old then old:Destroy() end
+    local markBaseBtn = newBtn("Mark Base", 55, Color3.fromRGB(80,160,255))
+    local tpBaseBtn   = newBtn("TP Base", 100, Color3.fromRGB(140,140,140))
+    local markTarBtn  = newBtn("Mark Target", 145, Color3.fromRGB(255,120,120))
+    local tpTarBtn    = newBtn("TP Target", 190, Color3.fromRGB(140,140,140))
 
-	local p = Instance.new("Part")
-	p.Anchored = true
-	p.CanCollide = false
-	p.Shape = Enum.PartType.Cylinder
-	p.Size = Vector3.new(0.2,4,4)
-	p.Material = Enum.Material.Neon
-	p.Color = color
-	p.CFrame = cf * CFrame.Angles(0,0,math.rad(90))
-	p.Parent = workspace
+    -- MARK CREATOR (Text + Circle + Stroke)
+    local function createMark(cf, text, color, strokeColor, old)
+        if old then old:Destroy() end
 
-	local bg = Instance.new("BillboardGui", p)
-	bg.Size = UDim2.fromOffset(120,45)
-	bg.StudsOffset = Vector3.new(0,3,0)
-	bg.AlwaysOnTop = true
+        local p = Instance.new("Part")
+        p.Anchored = true
+        p.CanCollide = false
+        p.Shape = Enum.PartType.Cylinder
+        p.Size = Vector3.new(0.2,4,4)
+        p.Material = Enum.Material.Neon
+        p.Color = color
+        p.CFrame = cf * CFrame.Angles(0,0,math.rad(90))
+        p.Parent = workspace
 
-	local lbl = Instance.new("TextLabel", bg)
-	lbl.Size = UDim2.new(1,0,1,0)
-	lbl.BackgroundTransparency = 1
-	lbl.Text = text
-	lbl.TextColor3 = color
-	lbl.Font = Enum.Font.GothamBold
-	lbl.TextScaled = true
+        local bg = Instance.new("BillboardGui", p)
+        bg.Size = UDim2.fromOffset(120,45)
+        bg.StudsOffset = Vector3.new(0,3,0)
+        bg.AlwaysOnTop = true
 
-	local stroke = Instance.new("UIStroke", lbl)
-	stroke.Color = strokeColor
-	stroke.Thickness = 2
+        local lbl = Instance.new("TextLabel", bg)
+        lbl.Size = UDim2.new(1,0,1,0)
+        lbl.BackgroundTransparency = 1
+        lbl.Text = text
+        lbl.TextColor3 = color
+        lbl.Font = Enum.Font.GothamBold
+        lbl.TextScaled = true
 
-	return p
-end
+        local stroke = Instance.new("UIStroke", lbl)
+        stroke.Color = strokeColor
+        stroke.Thickness = 2
 
--- BASE
-markBaseBtn.Activated:Connect(function()
-	baseCF = hrp.CFrame
-	baseMark = createMark(baseCF,"Base",Color3.fromRGB(0,255,150),Color3.fromRGB(0,0,0),baseMark)
-end)
+        return p
+    end
 
-tpBaseBtn.Activated:Connect(function()
-	if baseCF then hrp.CFrame = baseCF end
-end)
+    -- MARK BASE
+    markBaseBtn.Activated:Connect(function()
+        baseCF = hrp.CFrame
+        baseMark = createMark(baseCF, "Base", Color3.fromRGB(0,255,150), Color3.fromRGB(0,0,0), baseMark)
+        markBaseBtn.Text = "Base Marked ✔"
+        markBaseBtn.BackgroundColor3 = Color3.fromRGB(0,255,150)
+        tpBaseBtn.BackgroundColor3 = Color3.fromRGB(120,255,120)
+    end)
 
--- TARGET
-markTarBtn.Activated:Connect(function()
-	targetCF = hrp.CFrame
-	targetMark = createMark(targetCF,"Target",Color3.fromRGB(255,80,80),Color3.fromRGB(255,255,255),targetMark)
-end)
+    -- TP BASE
+    tpBaseBtn.Activated:Connect(function()
+        if baseCF then hrp.CFrame = baseCF end
+    end)
 
-tpTarBtn.Activated:Connect(function()
-	if targetCF then hrp.CFrame = targetCF end
-end)
+    -- MARK TARGET
+    markTarBtn.Activated:Connect(function()
+        targetCF = hrp.CFrame
+        targetMark = createMark(targetCF, "Target", Color3.fromRGB(255,80,80), Color3.fromRGB(255,255,255), targetMark)
+        markTarBtn.Text = "Target Marked ✔"
+        markTarBtn.BackgroundColor3 = Color3.fromRGB(255,80,80)
+        tpTarBtn.BackgroundColor3 = Color3.fromRGB(255,150,150)
+    end)
 
--- DRAG
-do
-	local dragging, dragStart, startPos
-	title.InputBegan:Connect(function(i)
-		if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-			dragging = true
-			dragStart = i.Position
-			startPos = main.Position
-		end
-	end)
+    -- TP TARGET
+    tpTarBtn.Activated:Connect(function()
+        if targetCF then hrp.CFrame = targetCF end
+    end)
 
-	UIS.InputChanged:Connect(function(i)
-		if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
-			local d = i.Position - dragStart
-			main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
-		end
-	end)
+    -- DRAG SYSTEM
+    do
+        local dragging, dragStart, startPos
 
-	UIS.InputEnded:Connect(function(i)
-		if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-			dragging = false
-		end
-	end)
-end
+        title.InputBegan:Connect(function(i)
+            if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                dragStart = i.Position
+                startPos = main.Position
+            end
+        end)
 
--- RESPAWN FIX
-player.CharacterAdded:Connect(function(c)
-	char = c
-	hrp = c:WaitForChild("HumanoidRootPart")
-end)
+        UIS.InputChanged:Connect(function(i)
+            if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+                local delta = i.Position - dragStart
+                main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                          startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            end
+        end)
 
--- ⏳ WAIT FOR LOADING (160s)
-task.delay(160, function()
-	gui.Enabled = true
-end)
+        UIS.InputEnded:Connect(function(i)
+            if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+                dragging = false
+            end
+        end)
+    end
+
+    -- Respawn fix
+    player.CharacterAdded:Connect(function(c)
+        char = c
+        hrp = c:WaitForChild("HumanoidRootPart")
+    end)
+
+end)()

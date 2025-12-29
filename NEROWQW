@@ -1,128 +1,136 @@
-local player = game.Players.LocalPlayer
-local markPosition = nil
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
--- ScreenGui
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "NeroInstantStealGUI"
-screenGui.ResetOnSpawn = false
-screenGui.IgnoreGuiInset = true
-screenGui.Parent = player:WaitForChild("PlayerGui")
+local MIN_ACCOUNT_AGE = 200
+local KICK_REASON = "Alternate accounts are not allowed."
 
--- Main Frame
-local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 300, 0, 300)
-mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-mainFrame.BorderSizePixel = 0
-mainFrame.Active = true
-mainFrame.Draggable = true
-mainFrame.Parent = screenGui
+local function ModeratorKick(player, reason)
+    local message = [[
+[ ALT ACCOUNT DETECTED ]
 
--- Rounded corners
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 15)
-corner.Parent = mainFrame
+Reason: • ]] .. reason .. [[
 
--- Gradient
-local gradient = Instance.new("UIGradient")
-gradient.Color = ColorSequence.new(Color3.fromRGB(60,60,60), Color3.fromRGB(25,25,25))
-gradient.Parent = mainFrame
+Please use a different account.
+Error Code: ALT-DETECTED
+]]
+    player:Kick(message)
+end
 
--- Title
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, -20, 0, 50)
-titleLabel.Position = UDim2.new(0, 10, 0, 10)
-titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "NERO INSTANT STEAL"
-titleLabel.Font = Enum.Font.GothamBold
-titleLabel.TextSize = 24
-titleLabel.TextColor3 = Color3.fromRGB(255,255,255)
-titleLabel.TextScaled = true
-titleLabel.Parent = mainFrame
+local function CheckAccount(player)
+    if player.AccountAge < MIN_ACCOUNT_AGE then
+        ModeratorKick(player, KICK_REASON)
+    end
+end
 
--- Creator
-local creatorLabel = Instance.new("TextLabel")
-creatorLabel.Size = UDim2.new(1, -20, 0, 20)
-creatorLabel.Position = UDim2.new(0, 10, 1, -30)
-creatorLabel.BackgroundTransparency = 1
-creatorLabel.Text = "Created by: Nero"
-creatorLabel.Font = Enum.Font.Gotham
-creatorLabel.TextSize = 14
-creatorLabel.TextColor3 = Color3.fromRGB(200,200,200)
-creatorLabel.TextScaled = true
-creatorLabel.Parent = mainFrame
+task.wait(0.5)
+CheckAccount(LocalPlayer)
 
--- Mark Button
-local markButton = Instance.new("TextButton")
-markButton.Size = UDim2.new(0, 120, 0, 50)
-markButton.Position = UDim2.new(0.5, -60, 0, 70)
-markButton.Text = "Mark"
-markButton.Font = Enum.Font.GothamBold
-markButton.TextSize = 18
-markButton.TextColor3 = Color3.fromRGB(255,255,255)
-markButton.BackgroundColor3 = Color3.fromRGB(0,170,255)
-markButton.Parent = mainFrame
+local player = LocalPlayer
+local markPosition
+local lastPosition
+local minimized = false
 
-local markCorner = Instance.new("UICorner")
-markCorner.CornerRadius = UDim.new(0,10)
-markCorner.Parent = markButton
+local function setSpawnMark(char)
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    markPosition = hrp.Position + (hrp.CFrame.LookVector * 13)
+end
 
--- TP Button
-local tpButton = Instance.new("TextButton")
-tpButton.Size = UDim2.new(0,120,0,50)
-tpButton.Position = UDim2.new(0.5,-60,0,140)
-tpButton.Text = "TP to Mark"
-tpButton.Font = Enum.Font.GothamBold
-tpButton.TextSize = 18
-tpButton.TextColor3 = Color3.fromRGB(0,0,0)
-tpButton.BackgroundColor3 = Color3.fromRGB(0,255,128)
-tpButton.Parent = mainFrame
+if player.Character then
+    setSpawnMark(player.Character)
+end
 
-local tpCorner = Instance.new("UICorner")
-tpCorner.CornerRadius = UDim.new(0,10)
-tpCorner.Parent = tpButton
+player.CharacterAdded:Connect(function(char)
+    task.wait(0.3)
+    setSpawnMark(char)
+end)
 
--- Flash Step Button
-local flashButton = Instance.new("TextButton")
-flashButton.Size = UDim2.new(0,120,0,50)
-flashButton.Position = UDim2.new(0.5,-60,0,210)
-flashButton.Text = "FLASH STEP"
-flashButton.Font = Enum.Font.GothamBold
-flashButton.TextSize = 18
-flashButton.TextColor3 = Color3.fromRGB(255,255,255)
-flashButton.BackgroundColor3 = Color3.fromRGB(255,85,0)
-flashButton.Parent = mainFrame
+local gui = Instance.new("ScreenGui")
+gui.Name = "NeroInstantStealGUI"
+gui.Parent = player.PlayerGui
+gui.ResetOnSpawn = false
 
-local flashCorner = Instance.new("UICorner")
-flashCorner.CornerRadius = UDim.new(0,10)
-flashCorner.Parent = flashButton
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.fromOffset(300,150)
+frame.Position = UDim2.new(0.5,0,0.5,0)
+frame.AnchorPoint = Vector2.new(0.5,0.5)
+frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+frame.Active = true
+frame.Draggable = true
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0,14)
 
--- Functions
-markButton.MouseButton1Click:Connect(function()
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        markPosition = player.Character.HumanoidRootPart.Position
-        print("Mark set at: ", markPosition)
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1,-80,0,30)
+title.Position = UDim2.new(0,10,0,0)
+title.Text = "NERO INSTANT STEAL"
+title.Font = Enum.Font.GothamBold
+title.TextScaled = true
+title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundTransparency = 1
+
+local minBtn = Instance.new("TextButton", frame)
+minBtn.Size = UDim2.fromOffset(25,25)
+minBtn.Position = UDim2.new(1,-55,0,3)
+minBtn.Text = "–"
+minBtn.Font = Enum.Font.GothamBold
+minBtn.TextSize = 22
+minBtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
+minBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", minBtn)
+
+local exitBtn = Instance.new("TextButton", frame)
+exitBtn.Size = UDim2.fromOffset(25,25)
+exitBtn.Position = UDim2.new(1,-28,0,3)
+exitBtn.Text = "X"
+exitBtn.Font = Enum.Font.GothamBold
+exitBtn.TextSize = 18
+exitBtn.BackgroundColor3 = Color3.fromRGB(170,0,0)
+exitBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", exitBtn)
+
+local container = Instance.new("Frame", frame)
+container.Position = UDim2.new(0,0,0,35)
+container.Size = UDim2.new(1,0,1,-35)
+container.BackgroundTransparency = 1
+
+local function makeButton(text, y, color)
+    local btn = Instance.new("TextButton", container)
+    btn.Size = UDim2.fromOffset(260,35)
+    btn.Position = UDim2.new(0.5,-130,0,y)
+    btn.Text = text
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 14
+    btn.BackgroundColor3 = color
+    btn.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
+    return btn
+end
+
+local instantBtn = makeButton("INSTANT STEAL", 0, Color3.fromRGB(0,200,120))
+local flashBtn   = makeButton("FLASH STEP", 45, Color3.fromRGB(0,140,255))
+
+instantBtn.MouseButton1Click:Connect(function()
+    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if hrp and markPosition then
+        lastPosition = hrp.CFrame
+        hrp.CFrame = CFrame.new(markPosition + Vector3.new(0,3,0))
+        task.wait(0.35)
+        hrp.CFrame = lastPosition
     end
 end)
 
-tpButton.MouseButton1Click:Connect(function()
-    if markPosition and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local originalPos = player.Character.HumanoidRootPart.Position
-        player.Character.HumanoidRootPart.CFrame = CFrame.new(markPosition + Vector3.new(0,3,0))
-        task.wait(0.5)
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(originalPos)
-        end
+flashBtn.MouseButton1Click:Connect(function()
+    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if hrp then
+        hrp.CFrame = hrp.CFrame + (hrp.CFrame.LookVector * 5)
     end
 end)
 
--- Flash Step Function (5 studs forward)
-flashButton.MouseButton1Click:Connect(function()
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local hrp = player.Character.HumanoidRootPart
-        local direction = hrp.CFrame.LookVector -- forward direction
-        local newPos = hrp.Position + direction * 5 -- 5 studs forward
-        hrp.CFrame = CFrame.new(newPos)
-    end
+minBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    container.Visible = not minimized
+    frame.Size = minimized and UDim2.fromOffset(300,35) or UDim2.fromOffset(300,150)
+end)
+
+exitBtn.MouseButton1Click:Connect(function()
+    gui:Destroy()
 end)

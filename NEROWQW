@@ -1,136 +1,349 @@
+-- Nero Script Key System
+-- Execute in your Roblox executor
+
+if not game:IsLoaded() then game.Loaded:Wait() end
+if not cloneref then
+    getgenv().cloneref = function(obj) return obj end
+end
+
+-- Key Configuration
+local CORRECT_KEY = "NEROSCRIPTS2026"
+local KEY_LINK = "http://pastepeso.net/NeroScriptKey"
+
+-- Create UI
+local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
 local LocalPlayer = Players.LocalPlayer
-
-local MIN_ACCOUNT_AGE = 200
-local KICK_REASON = "Alternate accounts are not allowed."
-
-local function ModeratorKick(player, reason)
-    local message = [[
-[ ALT ACCOUNT DETECTED ]
-
-Reason: • ]] .. reason .. [[
-
-Please use a different account.
-Error Code: ALT-DETECTED
-]]
-    player:Kick(message)
+while not LocalPlayer do
+    wait()
+    LocalPlayer = Players.LocalPlayer
 end
 
-local function CheckAccount(player)
-    if player.AccountAge < MIN_ACCOUNT_AGE then
-        ModeratorKick(player, KICK_REASON)
+-- Cleanup existing UI
+local existingUI = CoreGui:FindFirstChild("NeroKeySystem")
+if existingUI then
+    existingUI:Destroy()
+    task.wait()
+end
+
+-- Main ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "NeroKeySystem"
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = CoreGui
+
+-- Main Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 400, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -200)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = MainFrame
+
+local DropShadow = Instance.new("ImageLabel")
+DropShadow.Name = "DropShadow"
+DropShadow.Size = UDim2.new(1, 0, 1, 0)
+DropShadow.Position = UDim2.new(0, 0, 0, 0)
+DropShadow.BackgroundTransparency = 1
+DropShadow.Image = "rbxassetid://6015897843"
+DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+DropShadow.ImageTransparency = 0.8
+DropShadow.ScaleType = Enum.ScaleType.Slice
+DropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
+DropShadow.Parent = MainFrame
+
+-- Title
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Size = UDim2.new(1, -40, 0, 40)
+Title.Position = UDim2.new(0, 20, 0, 20)
+Title.BackgroundTransparency = 1
+Title.Text = "Nero Script"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 28
+Title.Font = Enum.Font.GothamBold
+Title.Parent = MainFrame
+
+-- Subtitle
+local Subtitle = Instance.new("TextLabel")
+Subtitle.Name = "Subtitle"
+Subtitle.Size = UDim2.new(1, -40, 0, 20)
+Subtitle.Position = UDim2.new(0, 20, 0, 70)
+Subtitle.BackgroundTransparency = 1
+Subtitle.Text = "Please get the key!"
+Subtitle.TextColor3 = Color3.fromRGB(180, 180, 180)
+Subtitle.TextSize = 16
+Subtitle.Font = Enum.Font.Gotham
+Subtitle.Parent = MainFrame
+
+-- Get Key Button
+local GetKeyButton = Instance.new("TextButton")
+GetKeyButton.Name = "GetKeyButton"
+GetKeyButton.Size = UDim2.new(1, -80, 0, 45)
+GetKeyButton.Position = UDim2.new(0, 40, 0, 110)
+GetKeyButton.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+GetKeyButton.AutoButtonColor = false
+GetKeyButton.Text = "GET KEY"
+GetKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+GetKeyButton.TextSize = 18
+GetKeyButton.Font = Enum.Font.GothamBold
+GetKeyButton.Parent = MainFrame
+
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(0, 8)
+ButtonCorner.Parent = GetKeyButton
+
+-- Key Input Label
+local KeyLabel = Instance.new("TextLabel")
+KeyLabel.Name = "KeyLabel"
+KeyLabel.Size = UDim2.new(1, -40, 0, 20)
+KeyLabel.Position = UDim2.new(0, 20, 0, 180)
+KeyLabel.BackgroundTransparency = 1
+KeyLabel.Text = "Please put the key!"
+KeyLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+KeyLabel.TextSize = 16
+KeyLabel.Font = Enum.Font.Gotham
+KeyLabel.Parent = MainFrame
+
+-- Key Input Box
+local KeyInput = Instance.new("TextBox")
+KeyInput.Name = "KeyInput"
+KeyInput.Size = UDim2.new(1, -80, 0, 45)
+KeyInput.Position = UDim2.new(0, 40, 0, 210)
+KeyInput.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+KeyInput.PlaceholderText = "Enter key here..."
+KeyInput.PlaceholderColor3 = Color3.fromRGB(100, 100, 110)
+KeyInput.Text = ""
+KeyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyInput.TextSize = 18
+KeyInput.Font = Enum.Font.Gotham
+KeyInput.ClearTextOnFocus = false
+KeyInput.Parent = MainFrame
+
+local InputCorner = Instance.new("UICorner")
+InputCorner.CornerRadius = UDim.new(0, 8)
+InputCorner.Parent = KeyInput
+
+local InputStroke = Instance.new("UIStroke")
+InputStroke.Color = Color3.fromRGB(60, 60, 70)
+InputStroke.Thickness = 2
+InputStroke.Parent = KeyInput
+
+-- CHECK KEY BUTTON (Newly Added)
+local CheckKeyButton = Instance.new("TextButton")
+CheckKeyButton.Name = "CheckKeyButton"
+CheckKeyButton.Size = UDim2.new(1, -80, 0, 45)
+CheckKeyButton.Position = UDim2.new(0, 40, 0, 270)
+CheckKeyButton.BackgroundColor3 = Color3.fromRGB(65, 120, 200)
+CheckKeyButton.AutoButtonColor = false
+CheckKeyButton.Text = "CHECK KEY"
+CheckKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CheckKeyButton.TextSize = 18
+CheckKeyButton.Font = Enum.Font.GothamBold
+CheckKeyButton.Parent = MainFrame
+
+local CheckButtonCorner = Instance.new("UICorner")
+CheckButtonCorner.CornerRadius = UDim.new(0, 8)
+CheckButtonCorner.Parent = CheckKeyButton
+
+-- Status Message
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Name = "StatusLabel"
+StatusLabel.Size = UDim2.new(1, -80, 0, 20)
+StatusLabel.Position = UDim2.new(0, 40, 0, 330)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = ""
+StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+StatusLabel.TextSize = 14
+StatusLabel.Font = Enum.Font.Gotham
+StatusLabel.TextTransparency = 1
+StatusLabel.Parent = MainFrame
+
+-- Button Animations
+local function animateButtonHover(button, hover)
+    local targetColor
+    if button == GetKeyButton then
+        targetColor = hover and Color3.fromRGB(55, 55, 65) or Color3.fromRGB(45, 45, 55)
+    elseif button == CheckKeyButton then
+        targetColor = hover and Color3.fromRGB(80, 140, 220) or Color3.fromRGB(65, 120, 200)
+    end
+    TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
+end
+
+local function animateButtonClick(button)
+    local clickColor
+    if button == GetKeyButton then
+        clickColor = Color3.fromRGB(35, 35, 45)
+    elseif button == CheckKeyButton then
+        clickColor = Color3.fromRGB(50, 100, 180)
+    end
+    
+    TweenService:Create(button, TweenInfo.new(0.1), {BackgroundColor3 = clickColor}):Play()
+    task.wait(0.1)
+    animateButtonHover(button, true)
+end
+
+-- Copy Link Function
+local function copyToClipboard(text)
+    local executor = identifyexecutor and identifyexecutor() or "Unknown"
+    
+    if executor:find("Synapse") or executor:find("ScriptWare") then
+        setclipboard(text)
+        return true
+    elseif executor:find("Krnl") or executor:find("Fluxus") then
+        writeclipboard(text)
+        return true
+    elseif executor:find("Electron") then
+        toclipboard(text)
+        return true
+    else
+        pcall(function()
+            setclipboard(text)
+        end)
+        pcall(function()
+            writeclipboard(text)
+        end)
+    end
+    return false
+end
+
+-- Show Status Message
+local function showStatus(message, isError)
+    StatusLabel.Text = message
+    StatusLabel.TextColor3 = isError and Color3.fromRGB(255, 100, 100) or Color3.fromRGB(100, 255, 100)
+    
+    TweenService:Create(StatusLabel, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
+    
+    if not isError then
+        task.wait(2)
+        TweenService:Create(StatusLabel, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
     end
 end
 
+-- Check Key Function
+local function checkKey(inputKey)
+    return inputKey:upper():gsub("%s+", "") == CORRECT_KEY
+end
+
+-- Verify Key Function (Used by both Enter key and Check Key Button)
+local function verifyKey()
+    local inputKey = KeyInput.Text
+    
+    if inputKey == "" then
+        showStatus("Please enter a key first", true)
+        return
+    end
+    
+    if checkKey(inputKey) then
+        showStatus("✓ Key accepted! Loading script...", false)
+        
+        -- Success animation
+        TweenService:Create(KeyInput.UIStroke, TweenInfo.new(0.3), {Color = Color3.fromRGB(100, 255, 100)}):Play()
+        TweenService:Create(MainFrame, TweenInfo.new(0.5), {Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0)}):Play()
+        
+        task.wait(0.5)
+        ScreenGui:Destroy()
+        
+        -- Here you would load your main script
+        -- Example: loadstring(game:HttpGet("YOUR_SCRIPT_URL"))()
+        
+    else
+        showStatus("Invalid key. Please get the correct key.", true)
+        TweenService:Create(KeyInput.UIStroke, TweenInfo.new(0.3), {Color = Color3.fromRGB(255, 100, 100)}):Play()
+        task.wait(0.3)
+        TweenService:Create(KeyInput.UIStroke, TweenInfo.new(0.3), {Color = Color3.fromRGB(60, 60, 70)}):Play()
+    end
+end
+
+-- Get Key Button Events
+GetKeyButton.MouseEnter:Connect(function()
+    animateButtonHover(GetKeyButton, true)
+end)
+
+GetKeyButton.MouseLeave:Connect(function()
+    animateButtonHover(GetKeyButton, false)
+end)
+
+GetKeyButton.MouseButton1Down:Connect(function()
+    animateButtonClick(GetKeyButton)
+end)
+
+GetKeyButton.MouseButton1Click:Connect(function()
+    if copyToClipboard(KEY_LINK) then
+        showStatus("Link copied! Please go to browser and paste to get the key", false)
+    else
+        showStatus("Link copied! Please go to browser and paste to get the key")
+    end
+end)
+
+-- Check Key Button Events (Newly Added)
+CheckKeyButton.MouseEnter:Connect(function()
+    animateButtonHover(CheckKeyButton, true)
+end)
+
+CheckKeyButton.MouseLeave:Connect(function()
+    animateButtonHover(CheckKeyButton, false)
+end)
+
+CheckKeyButton.MouseButton1Down:Connect(function()
+    animateButtonClick(CheckKeyButton)
+end)
+
+CheckKeyButton.MouseButton1Click:Connect(function()
+    verifyKey()
+end)
+
+-- Key Input Submit (Enter key)
+KeyInput.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        verifyKey()
+    end
+end)
+
+-- Draggable UI
+local dragging = false
+local dragInput, dragStart, startPos
+
+local function updateInput(input)
+    local delta = input.Position - dragStart
+    MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+MainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input == dragInput then
+        updateInput(input)
+    end
+end)
+
+-- Focus on input box
 task.wait(0.5)
-CheckAccount(LocalPlayer)
-
-local player = LocalPlayer
-local markPosition
-local lastPosition
-local minimized = false
-
-local function setSpawnMark(char)
-    local hrp = char:WaitForChild("HumanoidRootPart")
-    markPosition = hrp.Position + (hrp.CFrame.LookVector * 13)
-end
-
-if player.Character then
-    setSpawnMark(player.Character)
-end
-
-player.CharacterAdded:Connect(function(char)
-    task.wait(0.3)
-    setSpawnMark(char)
-end)
-
-local gui = Instance.new("ScreenGui")
-gui.Name = "NeroInstantStealGUI"
-gui.Parent = player.PlayerGui
-gui.ResetOnSpawn = false
-
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.fromOffset(300,150)
-frame.Position = UDim2.new(0.5,0,0.5,0)
-frame.AnchorPoint = Vector2.new(0.5,0.5)
-frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
-frame.Active = true
-frame.Draggable = true
-Instance.new("UICorner", frame).CornerRadius = UDim.new(0,14)
-
-local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1,-80,0,30)
-title.Position = UDim2.new(0,10,0,0)
-title.Text = "NERO INSTANT STEAL"
-title.Font = Enum.Font.GothamBold
-title.TextScaled = true
-title.TextColor3 = Color3.new(1,1,1)
-title.BackgroundTransparency = 1
-
-local minBtn = Instance.new("TextButton", frame)
-minBtn.Size = UDim2.fromOffset(25,25)
-minBtn.Position = UDim2.new(1,-55,0,3)
-minBtn.Text = "–"
-minBtn.Font = Enum.Font.GothamBold
-minBtn.TextSize = 22
-minBtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
-minBtn.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", minBtn)
-
-local exitBtn = Instance.new("TextButton", frame)
-exitBtn.Size = UDim2.fromOffset(25,25)
-exitBtn.Position = UDim2.new(1,-28,0,3)
-exitBtn.Text = "X"
-exitBtn.Font = Enum.Font.GothamBold
-exitBtn.TextSize = 18
-exitBtn.BackgroundColor3 = Color3.fromRGB(170,0,0)
-exitBtn.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", exitBtn)
-
-local container = Instance.new("Frame", frame)
-container.Position = UDim2.new(0,0,0,35)
-container.Size = UDim2.new(1,0,1,-35)
-container.BackgroundTransparency = 1
-
-local function makeButton(text, y, color)
-    local btn = Instance.new("TextButton", container)
-    btn.Size = UDim2.fromOffset(260,35)
-    btn.Position = UDim2.new(0.5,-130,0,y)
-    btn.Text = text
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 14
-    btn.BackgroundColor3 = color
-    btn.TextColor3 = Color3.new(1,1,1)
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
-    return btn
-end
-
-local instantBtn = makeButton("INSTANT STEAL", 0, Color3.fromRGB(0,200,120))
-local flashBtn   = makeButton("FLASH STEP", 45, Color3.fromRGB(0,140,255))
-
-instantBtn.MouseButton1Click:Connect(function()
-    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-    if hrp and markPosition then
-        lastPosition = hrp.CFrame
-        hrp.CFrame = CFrame.new(markPosition + Vector3.new(0,3,0))
-        task.wait(0.35)
-        hrp.CFrame = lastPosition
-    end
-end)
-
-flashBtn.MouseButton1Click:Connect(function()
-    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-    if hrp then
-        hrp.CFrame = hrp.CFrame + (hrp.CFrame.LookVector * 5)
-    end
-end)
-
-minBtn.MouseButton1Click:Connect(function()
-    minimized = not minimized
-    container.Visible = not minimized
-    frame.Size = minimized and UDim2.fromOffset(300,35) or UDim2.fromOffset(300,150)
-end)
-
-exitBtn.MouseButton1Click:Connect(function()
-    gui:Destroy()
-end)
+KeyInput:CaptureFocus()
